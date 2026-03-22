@@ -1,3 +1,11 @@
+import os
+
+# 🚀 FIX 1: TensorFlow ला जुन्या (Keras 2) मॉडेलला सपोर्ट करायला सांगणे (सर्वात महत्त्वाचे!)
+os.environ['TF_USE_LEGACY_KERAS'] = '1'
+
+# 🚀 FIX 2: TensorFlow च्या फालतू वॉर्निंग्ज बंद करून RAM वाचवणे
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 from fastapi import FastAPI, Request, UploadFile, File, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -6,17 +14,13 @@ import tensorflow as tf
 import numpy as np
 from tensorflow.keras.preprocessing import image
 import json
-import os
 import shutil
 import requests
 from datetime import datetime
 
-# 🚀 FIX 1: TensorFlow च्या वॉर्निंग्स बंद करून RAM वाचवणे
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
 app = FastAPI()
 
-# 🚀 FIX 2: जर सर्व्हरवर फोल्डर्स नसतील, तर ते आपोआप बनवणे (FastAPI क्रॅश होणार नाही)
+# 🚀 FIX 3: जर सर्व्हरवर फोल्डर्स नसतील, तर ते आपोआप बनवणे (FastAPI क्रॅश होणार नाही)
 os.makedirs("static", exist_ok=True)
 os.makedirs("static/uploads", exist_ok=True)
 os.makedirs("templates", exist_ok=True)
