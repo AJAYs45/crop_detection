@@ -11,7 +11,15 @@ import shutil
 import requests
 from datetime import datetime
 
+# 🚀 FIX 1: TensorFlow च्या वॉर्निंग्स बंद करून RAM वाचवणे
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 app = FastAPI()
+
+# 🚀 FIX 2: जर सर्व्हरवर फोल्डर्स नसतील, तर ते आपोआप बनवणे (FastAPI क्रॅश होणार नाही)
+os.makedirs("static", exist_ok=True)
+os.makedirs("static/uploads", exist_ok=True)
+os.makedirs("templates", exist_ok=True)
 
 # Setup templates and static files
 templates = Jinja2Templates(directory="templates")
