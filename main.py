@@ -11,9 +11,9 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 import tensorflow as tf
-import keras  # 🚀 <--- बदल १: थेट keras इम्पोर्ट केले
+import keras  
 import numpy as np
-from keras.preprocessing import image # 🚀 <--- बदल २: tensorflow.keras ऐवजी फक्त keras
+from keras.preprocessing import image 
 import json
 import shutil
 import requests
@@ -22,13 +22,12 @@ from datetime import datetime
 app = FastAPI()
 
 # 🚀 FIX 3: जर सर्व्हरवर फोल्डर्स नसतील, तर ते आपोआप बनवणे
-os.makedirs("static", exist_ok=True)
-os.makedirs("static/uploads", exist_ok=True)
-os.makedirs("templates", exist_ok=True)
-
-# Setup templates and static files
-# Setup templates and static files
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+os.makedirs(os.path.join(BASE_DIR, "static"), exist_ok=True)
+os.makedirs(os.path.join(BASE_DIR, "static/uploads"), exist_ok=True)
+os.makedirs(os.path.join(BASE_DIR, "templates"), exist_ok=True)
+
+# Setup templates and static files (Absolute Path Fix)
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
 
@@ -37,12 +36,11 @@ LABELS_PATH = 'class_indices.json'
 HISTORY_FILE = 'history.json'
 
 print("Loading Model... Please wait.")
-model = keras.models.load_model(MODEL_PATH) # 🚀 <--- बदल ३: tf.keras ऐवजी फक्त keras.models
+model = keras.models.load_model(MODEL_PATH) 
 
 # 🚀 SMART LABEL LOADER: Fixes Label Mismatch Issues!
 with open(LABELS_PATH, 'r') as f:
     raw_labels = json.load(f)
-    # Check if keys are string-numbers (e.g., "0": "Apple") or names (e.g., "Apple": 0)
     if list(raw_labels.keys())[0].isdigit():
         class_names = {int(k): v for k, v in raw_labels.items()}
     else:
@@ -72,57 +70,54 @@ def save_to_history(data):
     with open(HISTORY_FILE, "w") as f:
         json.dump(history, f, indent=4)
 
-# 🔐 SECURITY HELPER FUNCTION (युजर लॉगिन आहे की नाही ते चेक करते)
+# 🔐 SECURITY HELPER FUNCTION
 def is_logged_in(request: Request):
     return request.cookies.get("auth_session") == "admin_logged_in"
 
 # --- 🔐 Login & Logout Routes ---
 @app.get("/")
 async def login_page(request: Request):
-    # जर आधीच लॉगिन असेल तर डायरेक्ट home ला पाठवा
     if is_logged_in(request):
         return RedirectResponse(url="/home", status_code=303)
-    return templates.TemplateResponse("login.html", {"request": request, "error": None})
+    # 🚀 FIX 4: Updated TemplateResponse signature for FastAPI 0.100+
+    return templates.TemplateResponse(request=request, name="login.html", context={"request": request, "error": None})
 
 @app.post("/login")
 async def login(request: Request, username: str = Form(...), password: str = Form(...)):
-    # Static Username & Password
     if username == "admin" and password == "admin123":
         response = RedirectResponse(url="/home", status_code=303)
-        # ✅ लॉगिन झाल्यावर ब्राउझरमध्ये 'Cookie' सेव्ह करणे
         response.set_cookie(key="auth_session", value="admin_logged_in", httponly=True)
         return response
     else:
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid Username or Password!"})
+        return templates.TemplateResponse(request=request, name="login.html", context={"request": request, "error": "Invalid Username or Password!"})
 
 @app.get("/logout")
 async def logout():
     response = RedirectResponse(url="/", status_code=303)
-    # ❌ लॉगआउट केल्यावर 'Cookie' डिलीट करणे
     response.delete_cookie("auth_session")
     return response
 
-# --- 🏡 Protected Web Pages (इथे फक्त लॉगिन झाल्यावरच येता येईल) ---
+# --- 🏡 Protected Web Pages ---
 
 @app.get("/home")
 async def home(request: Request):
     if not is_logged_in(request): return RedirectResponse(url="/", status_code=303)
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="index.html", context={"request": request})
 
 @app.get("/info")
 async def info(request: Request):
     if not is_logged_in(request): return RedirectResponse(url="/", status_code=303)
-    return templates.TemplateResponse("info.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="info.html", context={"request": request})
 
 @app.get("/about")
 async def about_page(request: Request):
     if not is_logged_in(request): return RedirectResponse(url="/", status_code=303)
-    return templates.TemplateResponse("about.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="about.html", context={"request": request})
 
 @app.get("/predict")
 async def predict_page(request: Request):
     if not is_logged_in(request): return RedirectResponse(url="/", status_code=303)
-    return templates.TemplateResponse("predict.html", {"request": request, "result": None})
+    return templates.TemplateResponse(request=request, name="predict.html", context={"request": request, "result": None})
 
 @app.get("/history")
 async def show_history(request: Request):
@@ -132,8 +127,8 @@ async def show_history(request: Request):
         with open(HISTORY_FILE, "r") as f:
             try: history_data = json.load(f)
             except: pass
-    history_data = history_data[::-1] # Reverse list to show latest first
-    return templates.TemplateResponse("history.html", {"request": request, "history": history_data})
+    history_data = history_data[::-1]
+    return templates.TemplateResponse(request=request, name="history.html", context={"request": request, "history": history_data})
 
 @app.get("/delete_history/{timestamp}")
 async def delete_history(request: Request, timestamp: str):
@@ -156,31 +151,28 @@ async def predict_disease(
 ):
     if not is_logged_in(request): return RedirectResponse(url="/", status_code=303)
 
-    os.makedirs("static/uploads", exist_ok=True)
+    os.makedirs(os.path.join(BASE_DIR, "static/uploads"), exist_ok=True)
     file_path = f"static/uploads/{file.filename}"
-    with open(file_path, "wb") as buffer:
+    full_file_path = os.path.join(BASE_DIR, file_path)
+    
+    with open(full_file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # 🚀 Image Preprocessing matches the Custom CNN / MobileNetV2 setup
-    img = image.load_img(file_path, target_size=(224, 224))
+    img = image.load_img(full_file_path, target_size=(224, 224))
     img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0) / 255.0  # ✅ Keeps it exactly matched with training!
+    img_array = np.expand_dims(img_array, axis=0) / 255.0  
 
-    # Prediction
     predictions = model.predict(img_array)
     predicted_index = int(np.argmax(predictions[0]))
     confidence = float(np.max(predictions[0])) * 100
     
-    # 🚀 Safe Name Retrieval & Formatting
     raw_disease_name = class_names.get(predicted_index, "Unknown_Disease")
     clean_disease_name = raw_disease_name.replace("___", " - ").replace("_", " ")
 
-    # Recommendation Logic
     reco = solutions.get(raw_disease_name, "Consult a local agricultural expert for exact pesticide measurements.")
     if "healthy" in raw_disease_name.lower():
         reco = solutions.get("Healthy", "Crop is healthy! Continue regular watering.")
 
-    # Weather API Logic
     temp, humidity = "N/A", "N/A"
     if latitude and longitude:
         try:
@@ -201,4 +193,4 @@ async def predict_disease(
     }
 
     save_to_history(result_data)
-    return templates.TemplateResponse("predict.html", {"request": request, "result": result_data})
+    return templates.TemplateResponse(request=request, name="predict.html", context={"request": request, "result": result_data})
