@@ -1,6 +1,6 @@
 import os
 
-# 🚀 FIX 1: TensorFlow ला जुन्या (Keras 2) मॉडेलला सपोर्ट करायला सांगणे (सर्वात महत्त्वाचे!)
+# 🚀 FIX 1: TensorFlow ला जुन्या (Keras 2) मॉडेलला सपोर्ट करायला सांगणे
 os.environ['TF_USE_LEGACY_KERAS'] = '1'
 
 # 🚀 FIX 2: TensorFlow च्या फालतू वॉर्निंग्ज बंद करून RAM वाचवणे
@@ -11,8 +11,9 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 import tensorflow as tf
+import keras  # 🚀 <--- बदल १: थेट keras इम्पोर्ट केले
 import numpy as np
-from tensorflow.keras.preprocessing import image
+from keras.preprocessing import image # 🚀 <--- बदल २: tensorflow.keras ऐवजी फक्त keras
 import json
 import shutil
 import requests
@@ -20,7 +21,7 @@ from datetime import datetime
 
 app = FastAPI()
 
-# 🚀 FIX 3: जर सर्व्हरवर फोल्डर्स नसतील, तर ते आपोआप बनवणे (FastAPI क्रॅश होणार नाही)
+# 🚀 FIX 3: जर सर्व्हरवर फोल्डर्स नसतील, तर ते आपोआप बनवणे
 os.makedirs("static", exist_ok=True)
 os.makedirs("static/uploads", exist_ok=True)
 os.makedirs("templates", exist_ok=True)
@@ -34,7 +35,7 @@ LABELS_PATH = 'class_indices.json'
 HISTORY_FILE = 'history.json'
 
 print("Loading Model... Please wait.")
-model = tf.keras.models.load_model(MODEL_PATH)
+model = keras.models.load_model(MODEL_PATH) # 🚀 <--- बदल ३: tf.keras ऐवजी फक्त keras.models
 
 # 🚀 SMART LABEL LOADER: Fixes Label Mismatch Issues!
 with open(LABELS_PATH, 'r') as f:
