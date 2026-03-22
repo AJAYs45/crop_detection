@@ -27,8 +27,10 @@ os.makedirs("static/uploads", exist_ok=True)
 os.makedirs("templates", exist_ok=True)
 
 # Setup templates and static files
-templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Setup templates and static files
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
 
 MODEL_PATH = 'crop_model.h5'
 LABELS_PATH = 'class_indices.json'
