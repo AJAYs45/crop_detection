@@ -11,54 +11,54 @@
     
     <style>
         /* 🌍 Custom Google Translate Wrapper */
-.translate-wrapper {
-    background: rgba(25, 135, 84, 0.05); /* Light green tint */
-    border: 2px solid rgba(25, 135, 84, 0.3);
-    border-radius: 30px;
-    padding: 5px 20px;
-    display: inline-flex;
-    align-items: center;
-    transition: all 0.4s ease;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-}
+        .translate-wrapper {
+            background: rgba(25, 135, 84, 0.05); /* Light green tint */
+            border: 2px solid rgba(25, 135, 84, 0.3);
+            border-radius: 30px;
+            padding: 5px 20px;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
 
-.translate-wrapper:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(25, 135, 84, 0.2);
-    border-color: #198754;
-    background: white;
-}
+        .translate-wrapper:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(25, 135, 84, 0.2);
+            border-color: #198754;
+            background: white;
+        }
 
-/* 🛑 Hide Google's default text and logo */
-.goog-te-gadget {
-    font-family: 'Segoe UI', sans-serif !important;
-    color: transparent !important;
-    font-size: 0px !important;
-}
-.goog-te-gadget .goog-logo-link { display: none !important; }
-.goog-te-gadget img { display: none !important; }
+        /* 🛑 Hide Google's default text and logo */
+        .goog-te-gadget {
+            font-family: 'Segoe UI', sans-serif !important;
+            color: transparent !important;
+            font-size: 0px !important;
+        }
+        .goog-te-gadget .goog-logo-link { display: none !important; }
+        .goog-te-gadget img { display: none !important; }
 
-/* ✨ Style the actual Dropdown (Select box) */
-.goog-te-combo {
-    font-family: 'Segoe UI', sans-serif !important;
-    color: #198754;
-    font-weight: bold;
-    padding: 8px 15px;
-    border: 2px solid transparent !important;
-    border-radius: 20px;
-    background-color: white;
-    cursor: pointer;
-    outline: none;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: 0.3s;
-    font-size: 1rem !important;
-    margin-left: 10px;
-}
+        /* ✨ Style the actual Dropdown (Select box) */
+        .goog-te-combo {
+            font-family: 'Segoe UI', sans-serif !important;
+            color: #198754;
+            font-weight: bold;
+            padding: 8px 15px;
+            border: 2px solid transparent !important;
+            border-radius: 20px;
+            background-color: white;
+            cursor: pointer;
+            outline: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: 0.3s;
+            font-size: 1rem !important;
+            margin-left: 10px;
+        }
 
-.goog-te-combo:hover {
-    background-color: #f8fff8;
-    box-shadow: 0 4px 8px rgba(25, 135, 84, 0.2);
-}
+        .goog-te-combo:hover {
+            background-color: #f8fff8;
+            box-shadow: 0 4px 8px rgba(25, 135, 84, 0.2);
+        }
         body { 
             background-color: #f4f9f4; 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -115,7 +115,12 @@
             height: 300px;
             object-fit: cover;
             border-radius: 15px;
+            transition: transform 0.3s ease;
         }
+        
+        /* 🚀 NEW: Hover effect for Wiki Link Image */
+        .wiki-link { display: block; text-decoration: none; }
+        .wiki-link:hover .result-img { transform: scale(1.03); box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
         
         .progress { height: 25px; border-radius: 15px; background-color: #e9ecef; }
         .progress-bar { font-weight: bold; font-size: 1.1rem; line-height: 25px; }
@@ -164,6 +169,7 @@
                         <a class="btn btn-danger btn-sm rounded-pill mt-1 fw-bold px-3 shadow-sm" href="/logout">
                             <i class="fa-solid fa-power-off me-1"></i> Logout
                         </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -171,11 +177,21 @@
 
     <div class="container mt-4 mb-5">
         <div class="d-flex justify-content-center mb-4 no-print animate__animated animate__fadeInDown">
-    <div class="translate-wrapper">
-        <i class="fa-solid fa-language fs-3 text-success animate__animated animate__pulse animate__infinite"></i>&nbsp;&nbsp;<Label>Choose Language</Label>&nbsp;&nbsp;
-   <div id="google_translate_element"></div>
-    </div>
-</div>
+            <div class="translate-wrapper">
+                <i class="fa-solid fa-language fs-3 text-success animate__animated animate__pulse animate__infinite"></i>&nbsp;&nbsp;<label>Choose Language</label>&nbsp;&nbsp;
+                <div id="google_translate_element"></div>
+            </div>
+        </div>
+
+        {% if error %}
+        <div class="row justify-content-center mb-4 animate__animated animate__headShake no-print">
+            <div class="col-md-7">
+                <div class="alert alert-danger shadow-sm border border-danger fw-bold text-center fs-5" role="alert">
+                    <i class="fa-solid fa-triangle-exclamation fa-lg me-2"></i> {{ error }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
 
         {% if not result %}
         <div class="row justify-content-center animate__animated animate__zoomIn">
@@ -228,13 +244,18 @@
                     <div class="text-center mb-4">
                         <h2 class="text-success fw-bold no-print"><i class="fa-solid fa-file-medical"></i> Diagnostic Report</h2>
                         <div class="alert alert-info d-inline-block fw-bold shadow-sm px-4 mt-2">
-                            📍 Farm Environment: 🌡️ Temp: {{ result.temperature }}°C | 💧 Humidity: {{ result.humidity }}%
+                            📍 Farm Environment: 🌡️ Temp: {{ result.temperature }} | 💧 Humidity: {{ result.humidity }}
                         </div>
                     </div>
 
                     <div class="row align-items-center">
                         <div class="col-md-5 text-center mb-4 mb-md-0">
-                            <img src="{{ result.image_url }}" class="result-img shadow-sm border border-2 border-success" alt="Leaf">
+                            <a href="{{ result.wiki_url }}" target="_blank" class="wiki-link" title="Click to open Wikipedia page for {{ result.disease }}">
+                                <img src="{{ result.image_url }}" class="result-img shadow-sm border border-2 border-success" alt="Leaf" style="cursor: pointer;">
+                                <div class="mt-2 text-primary fw-bold no-print">
+                                    <i class="fa-brands fa-wikipedia-w"></i> Click image for Wikipedia info
+                                </div>
+                            </a>
                         </div>
                         
                         <div class="col-md-7 ps-md-4">
@@ -306,7 +327,7 @@
 
         async function startCamera() {
             try {
-                currentStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                 video.srcObject = currentStream;
                 video.style.display = 'block';
                 captureBtn.style.display = 'block';

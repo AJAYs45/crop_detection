@@ -241,5 +241,33 @@
         "humidity": 22,
         "image_url": "/static/uploads/Strawberry Leaf Scorch.jpg",
         "timestamp": "2026-03-09 05:19:10 PM"
+    },
+    {
+        "disease": "Apple - Cedar apple rust",
+        "confidence": 68.74,
+        "recommendation": "Consult a local agricultural expert for exact pesticide measurements.",
+        "temperature": 29.5,
+        "humidity": 41,
+        "image_url": "/static/uploads/1a67f47d-d35d-4c47-a336-af8ec6141113___FREC_C.Rust 4404_90deg.JPG",
+        "timestamp": "2026-03-21 10:22:54 AM"
+    },
+    {
+        "disease": "Blueberry - healthy",
+        "confidence": 97.44,
+        "recommendation": "Crop is healthy! Continue regular watering and proper fertilization.",
+        "temperature": 30.5,
+        "humidity": 39,
+        "image_url": "/static/uploads/0a0b8f78-df2d-4cfc-becf-cde10fa2766b___RS_HL 5487_flipTB.JPG",
+        "timestamp": "2026-03-21 10:51:46 AM"
+    },
+    {
+        "disease": "Strawberry - Leaf scorch",
+        "confidence": 73.12,
+        "recommendation": "Consult a local agricultural expert for exact pesticide measurements.",
+        "temperature": 32.8,
+        "humidity": 35,
+        "image_url": "/static/uploads/Strawberry Leaf Scorch.jpg",
+        "wiki_url": "https://en.wikipedia.org/w/index.php?search=Strawberry%20-%20Leaf%20scorch",
+        "timestamp": "2026-03-26 07:52:30 PM"
     }
 ]

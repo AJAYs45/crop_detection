@@ -14,8 +14,7 @@ EPOCHS = 10                  # Number of times the model will train
 
 print("Starting the training process...")
 
-# --- 1. Data Preparation (Data Augmentation 🚀) ---
-# Added Rotation, Zoom, and Flip to increase data variety
+
 train_datagen = ImageDataGenerator(
     rescale=1./255,          
     rotation_range=20,       # 🚀 NEW: Rotate images slightly
@@ -24,7 +23,7 @@ train_datagen = ImageDataGenerator(
     validation_split=0.2     # Reserve 20% of data for validation
 )
 
-# Validation data should NOT be augmented, only rescaled
+
 valid_datagen = ImageDataGenerator(
     rescale=1./255,
     validation_split=0.2
@@ -48,16 +47,16 @@ validation_generator = valid_datagen.flow_from_directory(
     subset='validation'
 )
 
-# --- 2. Saving Class Labels ---
+
 labels = {v: k for k, v in train_generator.class_indices.items()}
 with open('class_indices.json', 'w') as f:
     json.dump(labels, f)
 print("Disease names successfully saved to 'class_indices.json'.")
 
-# --- 3. Building the Transfer Learning Model (MobileNetV2 🚀) ---
+
 print("Downloading MobileNetV2 Base Model...")
 base_model = MobileNetV2(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
-base_model.trainable = False # Freeze the base model to train faster
+base_model.trainable = False 
 
 x = base_model.output
 x = GlobalAveragePooling2D()(x)

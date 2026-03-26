@@ -10,6 +10,7 @@ import os
 import shutil
 import requests
 from datetime import datetime
+import urllib.parse
 
 app = FastAPI()
 
@@ -20,14 +21,14 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 MODEL_PATH = 'crop_model.h5'
 LABELS_PATH = 'class_indices.json'
 HISTORY_FILE = 'history.json'
+USERS_FILE = 'users.json'  
 
 print("Loading Model... Please wait.")
 model = tf.keras.models.load_model(MODEL_PATH)
 
-# 🚀 SMART LABEL LOADER: Fixes Label Mismatch Issues!
+# SMART LABEL LOADER
 with open(LABELS_PATH, 'r') as f:
     raw_labels = json.load(f)
-    # Check if keys are string-numbers (e.g., "0": "Apple") or names (e.g., "Apple": 0)
     if list(raw_labels.keys())[0].isdigit():
         class_names = {int(k): v for k, v in raw_labels.items()}
     else:
@@ -35,7 +36,6 @@ with open(LABELS_PATH, 'r') as f:
 
 print("Model and Labels Loaded Successfully!")
 
-# Dictionary for Solutions
 solutions = {
     "Pepper,_bell___Bacterial_spot": "Use Copper-based fungicides. Ensure proper spacing between plants.",
     "Tomato___Early_blight": "Apply Chlorothalonil or Copper fungicide. Remove infected leaves.",
@@ -44,51 +44,90 @@ solutions = {
     "Healthy": "Crop is healthy! Continue regular watering and proper fertilization."
 }
 
-def save_to_history(data):
-    history = []
-    if os.path.exists(HISTORY_FILE):
-        with open(HISTORY_FILE, "r") as f:
-            try: history = json.load(f)
-            except: pass
-    
-    data['timestamp'] = datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
-    history.append(data)
-    
-    with open(HISTORY_FILE, "w") as f:
-        json.dump(history, f, indent=4)
+# 🚀 USER MANAGEMENT LOGIC
+def get_users():
+    if not os.path.exists(USERS_FILE):
+        return {"admin": {"password": "admin123", "fullname": "Admin", "role": "admin"}}
+    with open(USERS_FILE, "r") as f:
+        try: return json.load(f)
+        except: return {}
 
-# 🔐 SECURITY HELPER FUNCTION (युजर लॉगिन आहे की नाही ते चेक करते)
 def is_logged_in(request: Request):
     return request.cookies.get("auth_session") == "admin_logged_in"
 
-# --- 🔐 Login & Logout Routes ---
 @app.get("/")
 async def login_page(request: Request):
-    # जर आधीच लॉगिन असेल तर डायरेक्ट home ला पाठवा
     if is_logged_in(request):
         return RedirectResponse(url="/home", status_code=303)
-    return templates.TemplateResponse("login.html", {"request": request, "error": None})
+    return templates.TemplateResponse("login.html", {"request": request, "error": None, "success": None})
 
 @app.post("/login")
 async def login(request: Request, username: str = Form(...), password: str = Form(...)):
-    # Static Username & Password
-    if username == "admin" and password == "admin123":
+    users = get_users()
+    user_data = users.get(username)
+    
+    is_valid = False
+    # Handle new dict format or legacy string format
+    if isinstance(user_data, dict) and user_data.get("password") == password:
+        is_valid = True
+    elif isinstance(user_data, str) and user_data == password:
+        is_valid = True
+
+    if is_valid:
         response = RedirectResponse(url="/home", status_code=303)
-        # ✅ लॉगिन झाल्यावर ब्राउझरमध्ये 'Cookie' सेव्ह करणे
-        response.set_cookie(key="auth_session", value="admin_logged_in", httponly=True)
+        response.set_cookie(key="auth_session", value="admin_logged_in", httponly=True) 
         return response
     else:
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid Username or Password!"})
+        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid Username or Password!", "success": None})
+
+@app.get("/register")
+async def register_page(request: Request):
+    if is_logged_in(request):
+        return RedirectResponse(url="/home", status_code=303)
+    return templates.TemplateResponse("register.html", {"request": request, "error": None})
+
+# 🚀 UPDATED: Register route with new Agri-specific fields
+@app.post("/register")
+async def register(
+    request: Request, 
+    fullname: str = Form(...),
+    age: int = Form(...),
+    city: str = Form(...),
+    soil_type: str = Form(...),
+    username: str = Form(...), 
+    password: str = Form(...), 
+    confirm_password: str = Form(...)
+):
+    users = get_users()
+    
+    if username in users:
+        return templates.TemplateResponse("register.html", {"request": request, "error": "Username already exists!"})
+    
+    if password != confirm_password:
+        return templates.TemplateResponse("register.html", {"request": request, "error": "Passwords do not match!"})
+    
+    # Save user with complete profile data
+    users[username] = {
+        "password": password,
+        "fullname": fullname,
+        "age": age,
+        "city": city,
+        "soil_type": soil_type,
+        "joined_date": datetime.now().strftime("%Y-%m-%d")
+    }
+    
+    with open(USERS_FILE, "w") as f:
+        json.dump(users, f, indent=4)
+        
+    return templates.TemplateResponse("login.html", {"request": request, "error": None, "success": "Account created successfully! Please login."})
 
 @app.get("/logout")
 async def logout():
     response = RedirectResponse(url="/", status_code=303)
-    # ❌ लॉगआउट केल्यावर 'Cookie' डिलीट करणे
     response.delete_cookie("auth_session")
     return response
 
-# --- 🏡 Protected Web Pages (इथे फक्त लॉगिन झाल्यावरच येता येईल) ---
-
+# --- YOUR EXISTING APP ROUTES ---
 @app.get("/home")
 async def home(request: Request):
     if not is_logged_in(request): return RedirectResponse(url="/", status_code=303)
@@ -107,7 +146,18 @@ async def about_page(request: Request):
 @app.get("/predict")
 async def predict_page(request: Request):
     if not is_logged_in(request): return RedirectResponse(url="/", status_code=303)
-    return templates.TemplateResponse("predict.html", {"request": request, "result": None})
+    return templates.TemplateResponse("predict.html", {"request": request, "result": None, "error": None})
+
+def save_to_history(data):
+    history = []
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, "r") as f:
+            try: history = json.load(f)
+            except: pass
+    data['timestamp'] = datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
+    history.append(data)
+    with open(HISTORY_FILE, "w") as f:
+        json.dump(history, f, indent=4)
 
 @app.get("/history")
 async def show_history(request: Request):
@@ -117,7 +167,7 @@ async def show_history(request: Request):
         with open(HISTORY_FILE, "r") as f:
             try: history_data = json.load(f)
             except: pass
-    history_data = history_data[::-1] # Reverse list to show latest first
+    history_data = history_data[::-1]
     return templates.TemplateResponse("history.html", {"request": request, "history": history_data})
 
 @app.get("/delete_history/{timestamp}")
@@ -141,31 +191,32 @@ async def predict_disease(
 ):
     if not is_logged_in(request): return RedirectResponse(url="/", status_code=303)
 
-    os.makedirs("static/uploads", exist_ok=True)
+    os.makedirs(os.path.join("static", "uploads"), exist_ok=True)
     file_path = f"static/uploads/{file.filename}"
+    
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # 🚀 Image Preprocessing matches the Custom CNN / MobileNetV2 setup
     img = image.load_img(file_path, target_size=(224, 224))
     img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0) / 255.0  # ✅ Keeps it exactly matched with training!
+    img_array = np.expand_dims(img_array, axis=0) / 255.0  
 
-    # Prediction
     predictions = model.predict(img_array)
     predicted_index = int(np.argmax(predictions[0]))
     confidence = float(np.max(predictions[0])) * 100
     
-    # 🚀 Safe Name Retrieval & Formatting
+    if confidence < 50.0:
+        os.remove(file_path) 
+        error_msg = "Invalid Image! Please upload a clear photo of a crop leaf or fruit."
+        return templates.TemplateResponse(request=request, name="predict.html", context={"request": request, "result": None, "error": error_msg})
+
     raw_disease_name = class_names.get(predicted_index, "Unknown_Disease")
     clean_disease_name = raw_disease_name.replace("___", " - ").replace("_", " ")
 
-    # Recommendation Logic
     reco = solutions.get(raw_disease_name, "Consult a local agricultural expert for exact pesticide measurements.")
     if "healthy" in raw_disease_name.lower():
         reco = solutions.get("Healthy", "Crop is healthy! Continue regular watering.")
 
-    # Weather API Logic
     temp, humidity = "N/A", "N/A"
     if latitude and longitude:
         try:
@@ -176,14 +227,26 @@ async def predict_disease(
         except Exception:
             pass
 
+    if "healthy" in raw_disease_name.lower():
+        search_term = raw_disease_name.split("___")[0].replace("_", " ") + " plant"
+    else:
+        search_term = raw_disease_name.replace("___", " ").replace("_", " ")
+        
+    wiki_url = f"https://en.wikipedia.org/w/index.php?search={urllib.parse.quote(search_term)}"
+
     result_data = {
         "disease": clean_disease_name, 
         "confidence": round(confidence, 2),
         "recommendation": reco,
         "temperature": temp,      
         "humidity": humidity,     
-        "image_url": f"/{file_path}"
+        "image_url": f"/{file_path}",
+        "wiki_url": wiki_url
     }
 
     save_to_history(result_data)
+<<<<<<< HEAD
     return templates.TemplateResponse("predict.html", {"request": request, "result": result_data})
+=======
+    return templates.TemplateResponse(request=request, name="predict.html", context={"request": request, "result": result_data, "error": None})
+>>>>>>> b70cfa073 (updated code)
