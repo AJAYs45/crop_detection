@@ -1,0 +1,667 @@
+main.py   
+from fastapi import FastAPI, Request, UploadFile, File, Form
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
+import tensorflow as tf
+import numpy as np
+from tensorflow.keras.preprocessing import image
+import json
+import os
+import shutil
+import requests
+from datetime import datetime
+import urllib.parse
+
+app = FastAPI()
+
+# Setup templates and static files
+templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+MODEL_PATH = 'crop_model.h5'
+LABELS_PATH = 'class_indices.json'
+HISTORY_FILE = 'history.json'
+USERS_FILE = 'users.json'  
+
+print("Loading Model... Please wait.")
+model = tf.keras.models.load_model(MODEL_PATH)
+
+# SMART LABEL LOADER
+with open(LABELS_PATH, 'r') as f:
+    raw_labels = json.load(f)
+    if list(raw_labels.keys())[0].isdigit():
+        class_names = {int(k): v for k, v in raw_labels.items()}
+    else:
+        class_names = {v: k for k, v in raw_labels.items()}
+
+print("Model and Labels Loaded Successfully!")
+
+solutions = {
+    "Pepper,_bell___Bacterial_spot": "Use Copper-based fungicides. Ensure proper spacing between plants.",
+    "Tomato___Early_blight": "Apply Chlorothalonil or Copper fungicide. Remove infected leaves.",
+    "Potato___Late_blight": "Apply Mancozeb fungicide. Do not overwater the crops.",
+    "Tomato___Tomato_mosaic_virus": "Remove and destroy infected plants. Wash hands and tools.",
+    "Healthy": "Crop is healthy! Continue regular watering and proper fertilization."
+}
+
+# 🚀 USER MANAGEMENT LOGIC
+def get_users():
+    if not os.path.exists(USERS_FILE):
+        return {"admin": {"password": "admin123", "fullname": "Admin", "role": "admin"}}
+    with open(USERS_FILE, "r") as f:
+        try: return json.load(f)
+        except: return {}
+
+def is_logged_in(request: Request):
+    return request.cookies.get("auth_session") == "admin_logged_in"
+
+@app.get("/")
+async def login_page(request: Request):
+    if is_logged_in(request):
+        return RedirectResponse(url="/home", status_code=303)
+    return templates.TemplateResponse("login.html", {"request": request, "error": None, "success": None})
+
+@app.post("/login")
+async def login(request: Request, username: str = Form(...), password: str = Form(...)):
+    users = get_users()
+    user_data = users.get(username)
+    
+    is_valid = False
+    # Handle new dict format or legacy string format
+    if isinstance(user_data, dict) and user_data.get("password") == password:
+        is_valid = True
+    elif isinstance(user_data, str) and user_data == password:
+        is_valid = True
+
+    if is_valid:
+        response = RedirectResponse(url="/home", status_code=303)
+        response.set_cookie(key="auth_session", value="admin_logged_in", httponly=True) 
+        return response
+    else:
+        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid Username or Password!", "success": None})
+
+@app.get("/register")
+async def register_page(request: Request):
+    if is_logged_in(request):
+        return RedirectResponse(url="/home", status_code=303)
+    return templates.TemplateResponse("register.html", {"request": request, "error": None})
+
+# 🚀 UPDATED: Register route with new Agri-specific fields
+@app.post("/register")
+async def register(
+    request: Request, 
+    fullname: str = Form(...),
+    age: int = Form(...),
+    city: str = Form(...),
+    soil_type: str = Form(...),
+    username: str = Form(...), 
+    password: str = Form(...), 
+    confirm_password: str = Form(...)
+):
+    users = get_users()
+    
+    if username in users:
+        return templates.TemplateResponse("register.html", {"request": request, "error": "Username already exists!"})
+    
+    if password != confirm_password:
+        return templates.TemplateResponse("register.html", {"request": request, "error": "Passwords do not match!"})
+    
+    # Save user with complete profile data
+    users[username] = {
+        "password": password,
+        "fullname": fullname,
+        "age": age,
+        "city": city,
+        "soil_type": soil_type,
+        "joined_date": datetime.now().strftime("%Y-%m-%d")
+    }
+    
+    with open(USERS_FILE, "w") as f:
+        json.dump(users, f, indent=4)
+        
+    return templates.TemplateResponse("login.html", {"request": request, "error": None, "success": "Account created successfully! Please login."})
+
+@app.get("/logout")
+async def logout():
+    response = RedirectResponse(url="/", status_code=303)
+    response.delete_cookie("auth_session")
+    return response
+
+# --- YOUR EXISTING APP ROUTES ---
+@app.get("/home")
+async def home(request: Request):
+    if not is_logged_in(request): return RedirectResponse(url="/", status_code=303)
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/info")
+async def info(request: Request):
+    if not is_logged_in(request): return RedirectResponse(url="/", status_code=303)
+    return templates.TemplateResponse("info.html", {"request": request})
+
+@app.get("/about")
+async def about_page(request: Request):
+    if not is_logged_in(request): return RedirectResponse(url="/", status_code=303)
+    return templates.TemplateResponse("about.html", {"request": request})
+
+@app.get("/predict")
+async def predict_page(request: Request):
+    if not is_logged_in(request): return RedirectResponse(url="/", status_code=303)
+    return templates.TemplateResponse("predict.html", {"request": request, "result": None, "error": None})
+
+def save_to_history(data):
+    history = []
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, "r") as f:
+            try: history = json.load(f)
+            except: pass
+    data['timestamp'] = datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
+    history.append(data)
+    with open(HISTORY_FILE, "w") as f:
+        json.dump(history, f, indent=4)
+
+@app.get("/history")
+async def show_history(request: Request):
+    if not is_logged_in(request): return RedirectResponse(url="/", status_code=303)
+    history_data = []
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, "r") as f:
+            try: history_data = json.load(f)
+            except: pass
+    history_data = history_data[::-1]
+    return templates.TemplateResponse("history.html", {"request": request, "history": history_data})
+
+@app.get("/delete_history/{timestamp}")
+async def delete_history(request: Request, timestamp: str):
+    if not is_logged_in(request): return RedirectResponse(url="/", status_code=303)
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, "r") as f:
+            try: history = json.load(f)
+            except: history = []
+        history = [item for item in history if item.get("timestamp") != timestamp]
+        with open(HISTORY_FILE, "w") as f:
+            json.dump(history, f, indent=4)
+    return RedirectResponse(url="/history", status_code=303)
+
+@app.post("/predict")
+async def predict_disease(
+    request: Request, 
+    latitude: str = Form(None),
+    longitude: str = Form(None),
+    file: UploadFile = File(...)
+):
+    if not is_logged_in(request): return RedirectResponse(url="/", status_code=303)
+
+    os.makedirs(os.path.join("static", "uploads"), exist_ok=True)
+    file_path = f"static/uploads/{file.filename}"
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    img = image.load_img(file_path, target_size=(224, 224))
+    img_array = image.img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0) / 255.0  
+
+    predictions = model.predict(img_array)
+    predicted_index = int(np.argmax(predictions[0]))
+    confidence = float(np.max(predictions[0])) * 100
+    
+    if confidence < 50.0:
+        os.remove(file_path) 
+        error_msg = "Invalid Image! Please upload a clear photo of a crop leaf or fruit."
+        return templates.TemplateResponse(request=request, name="predict.html", context={"request": request, "result": None, "error": error_msg})
+
+    raw_disease_name = class_names.get(predicted_index, "Unknown_Disease")
+    clean_disease_name = raw_disease_name.replace("___", " - ").replace("_", " ")
+
+    reco = solutions.get(raw_disease_name, "Consult a local agricultural expert for exact pesticide measurements.")
+    if "healthy" in raw_disease_name.lower():
+        reco = solutions.get("Healthy", "Crop is healthy! Continue regular watering.")
+
+    temp, humidity = "N/A", "N/A"
+    if latitude and longitude:
+        try:
+            weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&current=temperature_2m,relative_humidity_2m"
+            response = requests.get(weather_url).json()
+            temp = response["current"]["temperature_2m"]
+            humidity = response["current"]["relative_humidity_2m"]
+        except Exception:
+            pass
+
+    if "healthy" in raw_disease_name.lower():
+        search_term = raw_disease_name.split("___")[0].replace("_", " ") + " plant"
+    else:
+        search_term = raw_disease_name.replace("___", " ").replace("_", " ")
+        
+    wiki_url = f"https://en.wikipedia.org/w/index.php?search={urllib.parse.quote(search_term)}"
+
+    result_data = {
+        "disease": clean_disease_name, 
+        "confidence": round(confidence, 2),
+        "recommendation": reco,
+        "temperature": temp,      
+        "humidity": humidity,     
+        "image_url": f"/{file_path}",
+        "wiki_url": wiki_url
+    }
+
+    save_to_history(result_data)
+<<<<<<< HEAD
+    return templates.TemplateResponse("predict.html", {"request": request, "result": result_data})
+=======
+    return templates.TemplateResponse(request=request, name="predict.html", context={"request": request, "result": result_data, "error": None})
+>>>>>>> b70cfa073 (updated code)
+
+predict.p4��Y���f�
+predict.html    
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict Disease - Smart Crop</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* 🌍 Custom Google Translate Wrapper */
+        .translate-wrapper {
+            background: rgba(25, 135, 84, 0.05); /* Light green tint */
+            border: 2px solid rgba(25, 135, 84, 0.3);
+            border-radius: 30px;
+            padding: 5px 20px;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .translate-wrapper:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(25, 135, 84, 0.2);
+            border-color: #198754;
+            background: white;
+        }
+
+        /* 🛑 Hide Google's default text and logo */
+        .goog-te-gadget {
+            font-family: 'Segoe UI', sans-serif !important;
+            color: transparent !important;
+            font-size: 0px !important;
+        }
+        .goog-te-gadget .goog-logo-link { display: none !important; }
+        .goog-te-gadget img { display: none !important; }
+
+        /* ✨ Style the actual Dropdown (Select box) */
+        .goog-te-combo {
+            font-family: 'Segoe UI', sans-serif !important;
+            color: #198754;
+            font-weight: bold;
+            padding: 8px 15px;
+            border: 2px solid transparent !important;
+            border-radius: 20px;
+            background-color: white;
+            cursor: pointer;
+            outline: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: 0.3s;
+            font-size: 1rem !important;
+            margin-left: 10px;
+        }
+
+        .goog-te-combo:hover {
+            background-color: #f8fff8;
+            box-shadow: 0 4px 8px rgba(25, 135, 84, 0.2);
+        }
+        body { 
+            background-color: #f4f9f4; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* 🌟 Navbar Styling */
+        .navbar { transition: all 0.3s ease; }
+        .nav-link { transition: 0.3s ease; }
+        .nav-link:hover { transform: translateY(-2px); color: #ffc107 !important; }
+
+        /* 📤 Interactive Upload Card */
+        .upload-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(25, 135, 84, 0.1);
+            transition: all 0.4s ease;
+            border-top: 5px solid #198754;
+        }
+        .upload-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(25, 135, 84, 0.2); }
+
+        /* 📸 Camera/File Input Styling */
+        .file-upload-wrapper {
+            border: 2px dashed #198754;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            background: #f8fff8;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .file-upload-wrapper:hover { background: #e8f5e9; border-color: #0f5132; }
+        
+        .btn-custom {
+            border-radius: 30px;
+            padding: 12px 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+        .btn-custom:hover { transform: scale(1.05); box-shadow: 0 10px 20px rgba(25, 135, 84, 0.3); }
+
+        /* 📊 Result Card Styling */
+        .result-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(25, 135, 84, 0.2);
+            border-left: 5px solid #198754;
+        }
+        .result-img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 15px;
+            transition: transform 0.3s ease;
+        }
+        
+        /* 🚀 NEW: Hover effect for Wiki Link Image */
+        .wiki-link { display: block; text-decoration: none; }
+        .wiki-link:hover .result-img { transform: scale(1.03); box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
+        
+        .progress { height: 25px; border-radius: 15px; background-color: #e9ecef; }
+        .progress-bar { font-weight: bold; font-size: 1.1rem; line-height: 25px; }
+        
+        .reco-box { background-color: #f8f9fa; border-left: 5px solid #ffc107; padding: 20px; border-radius: 10px; }
+
+        /* 🖨️ PDF Print CSS */
+        @media print {
+            body { background-color: white !important; margin: 0; padding: 0; }
+            .no-print, form, nav, .chat-btn, .chat-popup { display: none !important; }
+            .container, .col-md-8, .row { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; flex: 0 0 100% !important; display: block !important; }
+            .result-card { border: 2px solid #198754 !important; box-shadow: none !important; page-break-inside: avoid; margin-top: 20px !important; width: 100% !important; }
+        }
+
+        /* 🤖 Chatbot CSS */
+        .chat-btn { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background-color: #198754; color: white; border-radius: 50%; text-align: center; line-height: 60px; font-size: 30px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index: 1000; transition: 0.3s; }
+        .chat-btn:hover { background-color: #146c43; transform: scale(1.1); }
+        .chat-popup { position: fixed; bottom: 100px; right: 30px; width: 320px; background-color: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: none; flex-direction: column; z-index: 1000; overflow: hidden; }
+        .chat-header { background-color: #198754; color: white; padding: 15px; font-weight: bold; text-align: center; font-size: 18px; }
+        .chat-body { height: 250px; padding: 15px; overflow-y: auto; background-color: #f4f9f4; display: flex; flex-direction: column; gap: 10px; }
+        .chat-input-area { display: flex; border-top: 1px solid #ddd; padding: 10px; background: white; }
+        .chat-input-area input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px; outline: none; }
+        .chat-input-area button { background: #198754; color: white; border: none; padding: 8px 15px; margin-left: 5px; border-radius: 5px; cursor: pointer; }
+        .msg { max-width: 80%; padding: 10px; border-radius: 10px; font-size: 14px; }
+        .msg.bot { background-color: #e9ecef; align-self: flex-start; color: black; border-bottom-left-radius: 0; }
+        .msg.user { background-color: #198754; align-self: flex-end; color: white; border-bottom-right-radius: 0; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow sticky-top animate__animated animate__fadeInDown no-print">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">🌿 Smart Crop Advisory</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active fw-bold" href="/predict">Predict Disease</a></li>
+                    <li class="nav-item"><a class="nav-link text-warning fw-bold" href="/history">🕰️ History</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/info">Disease Info</a></li>
+
+                    <li class="nav-item"><a class="nav-link" href="/about">About Us</a></li>
+                    <li class="nav-item ms-lg-3">
+                        <a class="btn btn-danger btn-sm rounded-pill mt-1 fw-bold px-3 shadow-sm" href="/logout">
+                            <i class="fa-solid fa-power-off me-1"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 mb-5">
+        <div class="d-flex justify-content-center mb-4 no-print animate__animated animate__fadeInDown">
+            <div class="translate-wrapper">
+                <i class="fa-solid fa-language fs-3 text-success animate__animated animate__pulse animate__infinite"></i>&nbsp;&nbsp;<label>Choose Language</label>&nbsp;&nbsp;
+                <div id="google_translate_element"></div>
+            </div>
+        </div>
+
+        {% if error %}
+        <div class="row justify-content-center mb-4 animate__animated animate__headShake no-print">
+            <div class="col-md-7">
+                <div class="alert alert-danger shadow-sm border border-danger fw-bold text-center fs-5" role="alert">
+                    <i class="fa-solid fa-triangle-exclamation fa-lg me-2"></i> {{ error }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not result %}
+        <div class="row justify-content-center animate__animated animate__zoomIn">
+            <div class="col-md-7">
+                <div class="upload-card">
+                    <h2 class="text-center text-success fw-bold mb-3"><i class="fa-solid fa-microscope"></i> AI Disease Diagnostic</h2>
+                    <p class="text-center text-muted mb-4 fs-5">Upload a clear photo or use your camera.</p>
+                    
+                    <form action="/predict" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="latitude" id="latitude">
+                        <input type="hidden" name="longitude" id="longitude">
+
+                        <div class="mb-4">
+                            <input class="form-control d-none" type="file" id="imageInput" name="file" accept="image/*" required onchange="document.getElementById('fileName').innerText = this.files[0].name">
+                            
+                            <div class="file-upload-wrapper mb-3" onclick="document.getElementById('imageInput').click()">
+                                <i class="fa-solid fa-cloud-arrow-up fa-3x text-success mb-2"></i>
+                                <h5 class="text-success fw-bold">Tap to Upload Image</h5>
+                                <p id="fileName" class="text-muted mt-2 mb-0 small"></p>
+                            </div>
+
+                            <p class="text-center text-muted fw-bold">OR</p>
+                            
+                            <button type="button" class="btn btn-outline-success fw-bold w-100 btn-custom" onclick="startCamera()">
+                                <i class="fa-solid fa-camera me-2"></i> Open Live Camera
+                            </button>
+
+                            <video id="cameraStream" autoplay playsinline class="mt-3 mb-2 w-100 rounded-3 shadow-sm border border-success" style="display:none; max-height: 300px; object-fit: cover;"></video>
+                            
+                            <button type="button" id="captureBtn" class="btn btn-danger fw-bold w-100 mt-2 shadow btn-custom" style="display:none;" onclick="captureImage()">
+                                <i class="fa-solid fa-circle-dot me-2"></i> Capture Photo
+                            </button>
+                            
+                            <canvas id="captureCanvas" style="display:none;"></canvas>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-lg w-100 fw-bold btn-custom shadow">
+                            <i class="fa-solid fa-brain me-2"></i> Analyze & Get Solution
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if result %}
+        <div class="row justify-content-center animate__animated animate__fadeInUp">
+            <div class="col-md-10">
+                <div class="result-card p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <h2 class="text-success fw-bold no-print"><i class="fa-solid fa-file-medical"></i> Diagnostic Report</h2>
+                        <div class="alert alert-info d-inline-block fw-bold shadow-sm px-4 mt-2">
+                            📍 Farm Environment: 🌡️ Temp: {{ result.temperature }} | 💧 Humidity: {{ result.humidity }}
+                        </div>
+                    </div>
+
+                    <div class="row align-items-center">
+                        <div class="col-md-5 text-center mb-4 mb-md-0">
+                            <a href="{{ result.wiki_url }}" target="_blank" class="wiki-link" title="Click to open Wikipedia page for {{ result.disease }}">
+                                <img src="{{ result.image_url }}" class="result-img shadow-sm border border-2 border-success" alt="Leaf" style="cursor: pointer;">
+                                <div class="mt-2 text-primary fw-bold no-print">
+                                    <i class="fa-brands fa-wikipedia-w"></i> Click image for Wikipedia info
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-7 ps-md-4">
+                            <h3 class="text-danger fw-bold mb-3"><i class="fa-solid fa-virus"></i> Disease: {{ result.disease }}</h3>
+                            
+                            <div class="mt-3 mb-4">
+                                <label class="fw-bold text-muted mb-2"><i class="fa-solid fa-chart-line me-1"></i> AI Confidence Level</label>
+                                <div class="progress shadow-sm">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: {{ result.confidence }}%;" aria-valuenow="{{ result.confidence }}" aria-valuemin="0" aria-valuemax="100">{{ result.confidence }}%</div>
+                                </div>
+                            </div>
+                            
+                            <div class="reco-box shadow-sm mb-4">
+                                <h5 class="text-success fw-bold"><i class="fa-solid fa-prescription-bottle-medical me-2"></i> Recommended Action:</h5>
+                                <p class="text-dark fs-5 mb-0" id="recommendation_text">{{ result.recommendation }}</p>
+                            </div>
+                            
+                            <div class="d-flex gap-3 no-print flex-wrap">
+                                <button onclick="speakRecommendation()" class="btn btn-warning fw-bold text-dark shadow-sm btn-custom flex-grow-1">
+                                    <i class="fa-solid fa-volume-high me-1"></i> Listen
+                                </button>
+                                <button type="button" onclick="window.print()" class="btn btn-primary fw-bold text-white shadow-sm btn-custom flex-grow-1">
+                                    <i class="fa-solid fa-file-pdf me-1"></i> Save PDF
+                                </button>
+                                <a href="/predict" class="btn btn-outline-success fw-bold shadow-sm btn-custom flex-grow-1">
+                                    <i class="fa-solid fa-rotate-left me-1"></i> Scan Another
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <div class="chat-btn no-print animate__animated animate__bounceInRight" onclick="toggleChat()"><i class="fa-solid fa-robot"></i></div>
+    <div class="chat-popup no-print animate__animated animate__fadeInUp" id="chatPopup">
+        <div class="chat-header">
+            👨‍🌾 शेतकरी मित्र (AI)
+            <span style="float:right; cursor:pointer;" onclick="toggleChat()"><i class="fa-solid fa-xmark"></i></span>
+        </div>
+        <div class="chat-body" id="chatBody">
+            <div class="msg bot shadow-sm">Hello! Welcome to Smart Crop Advisory. How can I help you today?</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Type your question..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'en,mr,hi', layout: google.translate.TranslateElement.InlineLayout.SIMPLE }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script>
+        // --- 📸 Live Webcam Logic ---
+        const video = document.getElementById('cameraStream');
+        const canvas = document.getElementById('captureCanvas');
+        const fileInput = document.getElementById('imageInput');
+        const captureBtn = document.getElementById('captureBtn');
+        let currentStream = null;
+
+        async function startCamera() {
+            try {
+                currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                video.srcObject = currentStream;
+                video.style.display = 'block';
+                captureBtn.style.display = 'block';
+            } catch (err) {
+                alert("Camera access denied! Please allow camera permission.");
+            }
+        }
+
+        function captureImage() {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(function(blob) {
+                const file = new File([blob], "captured_leaf.jpg", { type: "image/jpeg" });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files; 
+                document.getElementById('fileName').innerText = "📷 Photo Captured Successfully!";
+                document.getElementById('fileName').classList.add("text-success", "fw-bold");
+
+                currentStream.getTracks().forEach(track => track.stop());
+                video.style.display = 'none';
+                captureBtn.style.display = 'none';
+            }, "image/jpeg");
+        }
+
+        // --- Location & Voice ---
+        window.onload = function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    if(document.getElementById('latitude')) document.getElementById('latitude').value = position.coords.latitude;
+                    if(document.getElementById('longitude')) document.getElementById('longitude').value = position.coords.longitude;
+                });
+            }
+        };
+
+        function speakRecommendation() {
+            let text = document.getElementById("recommendation_text").innerText;
+            if ('speechSynthesis' in window) {
+                let speech = new SpeechSynthesisUtterance();
+                speech.text = text; speech.lang = 'hi-IN'; speech.rate = 0.9; window.speechSynthesis.speak(speech);
+            } else { alert("Voice feature not supported."); }
+        }
+
+        // --- 🤖 Chatbot Logic ---
+        function toggleChat() {
+            var chat = document.getElementById("chatPopup");
+            chat.style.display = (chat.style.display === "flex") ? "none" : "flex";
+        }
+        function handleKeyPress(e) { if (e.key === 'Enter') { sendMessage(); } }
+        function sendMessage() {
+            var inputField = document.getElementById("chatInput");
+            var message = inputField.value.trim();
+            if (message === "") return;
+            addMessage(message, "user");
+            inputField.value = "";
+            setTimeout(function() {
+                var response = getBotResponse(message.toLowerCase());
+                addMessage(response, "bot");
+            }, 600); 
+        }
+        function addMessage(text, sender) {
+            var chatBody = document.getElementById("chatBody");
+            var msgDiv = document.createElement("div");
+            msgDiv.className = "msg " + sender + " shadow-sm animate__animated animate__fadeInUp"; 
+            msgDiv.innerText = text;
+            chatBody.appendChild(msgDiv); 
+            chatBody.scrollTop = chatBody.scrollHeight; 
+        }
+        function getBotResponse(input) {
+            if (input.includes("hello") || input.includes("hi") || input.includes("namaskar")) return "Namaskar! I am your AI Farmer Friend. Ask me about Tomato or Potato diseases!";
+            else if (input.includes("early blight")) return "Early Blight causes brown spots. Solution: Use Chlorothalonil or Copper-based fungicides.";
+            else if (input.includes("late blight")) return "Late Blight spreads fast. Solution: Apply Mancozeb immediately and avoid overwatering.";
+            else if (input.includes("thank")) return "You're welcome! Happy Farming! 🌿";
+            else return "Sorry, I am still learning. Try asking about 'Early blight' or 'Late blight'.";
+        }
+    </script>
+</body>
+</html>

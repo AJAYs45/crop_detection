@@ -12,7 +12,7 @@
     <style>
         /* 🌍 Custom Google Translate Wrapper */
         .translate-wrapper {
-            background: rgba(25, 135, 84, 0.05); /* Light green tint */
+            background: rgba(25, 135, 84, 0.05);
             border: 2px solid rgba(25, 135, 84, 0.3);
             border-radius: 30px;
             padding: 5px 20px;
@@ -21,7 +21,6 @@
             transition: all 0.4s ease;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
-
         .translate-wrapper:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(25, 135, 84, 0.2);
@@ -30,11 +29,7 @@
         }
 
         /* 🛑 Hide Google's default text and logo */
-        .goog-te-gadget {
-            font-family: 'Segoe UI', sans-serif !important;
-            color: transparent !important;
-            font-size: 0px !important;
-        }
+        .goog-te-gadget { font-family: 'Segoe UI', sans-serif !important; color: transparent !important; font-size: 0px !important; }
         .goog-te-gadget .goog-logo-link { display: none !important; }
         .goog-te-gadget img { display: none !important; }
 
@@ -54,16 +49,9 @@
             font-size: 1rem !important;
             margin-left: 10px;
         }
-
-        .goog-te-combo:hover {
-            background-color: #f8fff8;
-            box-shadow: 0 4px 8px rgba(25, 135, 84, 0.2);
-        }
-        body { 
-            background-color: #f4f9f4; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow-x: hidden;
-        }
+        .goog-te-combo:hover { background-color: #f8fff8; box-shadow: 0 4px 8px rgba(25, 135, 84, 0.2); }
+        
+        body { background-color: #f4f9f4; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; }
 
         /* 🌟 Navbar Styling */
         .navbar { transition: all 0.3s ease; }
@@ -71,82 +59,53 @@
         .nav-link:hover { transform: translateY(-2px); color: #ffc107 !important; }
 
         /* 📤 Interactive Upload Card */
-        .upload-card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 15px 35px rgba(25, 135, 84, 0.1);
-            transition: all 0.4s ease;
-            border-top: 5px solid #198754;
-        }
+        .upload-card { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 15px 35px rgba(25, 135, 84, 0.1); transition: all 0.4s ease; border-top: 5px solid #198754; }
         .upload-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(25, 135, 84, 0.2); }
 
         /* 📸 Camera/File Input Styling */
-        .file-upload-wrapper {
-            border: 2px dashed #198754;
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            background: #f8fff8;
-            cursor: pointer;
-            transition: 0.3s;
-        }
+        .file-upload-wrapper { border: 2px dashed #198754; border-radius: 15px; padding: 30px; text-align: center; background: #f8fff8; cursor: pointer; transition: 0.3s; }
         .file-upload-wrapper:hover { background: #e8f5e9; border-color: #0f5132; }
         
-        .btn-custom {
-            border-radius: 30px;
-            padding: 12px 30px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: 0.3s;
-        }
+        .btn-custom { border-radius: 30px; padding: 12px 30px; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
         .btn-custom:hover { transform: scale(1.05); box-shadow: 0 10px 20px rgba(25, 135, 84, 0.3); }
 
         /* 📊 Result Card Styling */
-        .result-card {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 15px 35px rgba(25, 135, 84, 0.2);
-            border-left: 5px solid #198754;
-        }
-        .result-img {
-            width: 100%;
-            height: 300px;
-            object-fit: cover;
-            border-radius: 15px;
-            transition: transform 0.3s ease;
-        }
-        
-        /* 🚀 NEW: Hover effect for Wiki Link Image */
+        .result-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 15px 35px rgba(25, 135, 84, 0.2); border-left: 5px solid #198754; }
+        .result-img { width: 100%; height: 300px; object-fit: cover; border-radius: 15px; transition: transform 0.3s ease; }
         .wiki-link { display: block; text-decoration: none; }
         .wiki-link:hover .result-img { transform: scale(1.03); box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
         
         .progress { height: 25px; border-radius: 15px; background-color: #e9ecef; }
         .progress-bar { font-weight: bold; font-size: 1.1rem; line-height: 25px; }
-        
-        .reco-box { background-color: #f8f9fa; border-left: 5px solid #ffc107; padding: 20px; border-radius: 10px; }
 
-        /* 🖨️ PDF Print CSS */
+        /* 🖨️ PDF Print CSS (FIXED FOR PROPER PDF SAVING & TRANSLATE BUG) */
         @media print {
-            body { background-color: white !important; margin: 0; padding: 0; }
-            .no-print, form, nav, .chat-btn, .chat-popup { display: none !important; }
-            .container, .col-md-8, .row { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; flex: 0 0 100% !important; display: block !important; }
-            .result-card { border: 2px solid #198754 !important; box-shadow: none !important; page-break-inside: avoid; margin-top: 20px !important; width: 100% !important; }
+            body { background-color: white !important; margin: 0; padding: 0; top: 0 !important; position: static !important; }
+            
+            /* Hide UI elements, translate wrapper, and the invisible Google Translate iframe */
+            .no-print, form, nav, .translate-wrapper, .skiptranslate, iframe.skiptranslate { 
+                display: none !important; 
+                height: 0 !important;
+            }
+            
+            .container { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 10px !important; }
+            
+            /* Main result card formatting */
+            .result-card { border: 2px solid #198754 !important; box-shadow: none !important; padding: 15px !important; margin-top: 0 !important; width: 100% !important; page-break-inside: avoid; }
+            
+            /* Image resizing for PDF */
+            .result-img { max-width: 250px !important; height: auto !important; margin: 0 auto 15px auto; display: block; border: 1px solid #ccc !important; }
+            
+            /* 🚀 Fixed layout for the 4 Medicine Cards so they don't break */
+            .row { display: flex !important; flex-wrap: wrap !important; width: 100% !important; margin: 0 !important; }
+            .col-md-6 { flex: 0 0 50% !important; max-width: 50% !important; padding: 5px !important; }
+            .card { border: 1px solid #ccc !important; box-shadow: none !important; page-break-inside: avoid !important; height: auto !important; }
+            .card-body { padding: 10px !important; }
+            
+            /* Adjust headings for print */
+            h3, h6 { margin-bottom: 5px !important; }
+            p { margin-bottom: 0 !important; font-size: 12px !important; }
         }
-
-        /* 🤖 Chatbot CSS */
-        .chat-btn { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background-color: #198754; color: white; border-radius: 50%; text-align: center; line-height: 60px; font-size: 30px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index: 1000; transition: 0.3s; }
-        .chat-btn:hover { background-color: #146c43; transform: scale(1.1); }
-        .chat-popup { position: fixed; bottom: 100px; right: 30px; width: 320px; background-color: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: none; flex-direction: column; z-index: 1000; overflow: hidden; }
-        .chat-header { background-color: #198754; color: white; padding: 15px; font-weight: bold; text-align: center; font-size: 18px; }
-        .chat-body { height: 250px; padding: 15px; overflow-y: auto; background-color: #f4f9f4; display: flex; flex-direction: column; gap: 10px; }
-        .chat-input-area { display: flex; border-top: 1px solid #ddd; padding: 10px; background: white; }
-        .chat-input-area input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px; outline: none; }
-        .chat-input-area button { background: #198754; color: white; border: none; padding: 8px 15px; margin-left: 5px; border-radius: 5px; cursor: pointer; }
-        .msg { max-width: 80%; padding: 10px; border-radius: 10px; font-size: 14px; }
-        .msg.bot { background-color: #e9ecef; align-self: flex-start; color: black; border-bottom-left-radius: 0; }
-        .msg.user { background-color: #198754; align-self: flex-end; color: white; border-bottom-right-radius: 0; }
     </style>
 </head>
 <body>
@@ -163,7 +122,6 @@
                     <li class="nav-item"><a class="nav-link active fw-bold" href="/predict">Predict Disease</a></li>
                     <li class="nav-item"><a class="nav-link text-warning fw-bold" href="/history">🕰️ History</a></li>
                     <li class="nav-item"><a class="nav-link" href="/info">Disease Info</a></li>
-
                     <li class="nav-item"><a class="nav-link" href="/about">About Us</a></li>
                     <li class="nav-item ms-lg-3">
                         <a class="btn btn-danger btn-sm rounded-pill mt-1 fw-bold px-3 shadow-sm" href="/logout">
@@ -268,12 +226,49 @@
                                 </div>
                             </div>
                             
-                            <div class="reco-box shadow-sm mb-4">
-                                <h5 class="text-success fw-bold"><i class="fa-solid fa-prescription-bottle-medical me-2"></i> Recommended Action:</h5>
-                                <p class="text-dark fs-5 mb-0" id="recommendation_text">{{ result.recommendation }}</p>
+                            <div class="row mt-4">
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border-danger shadow-sm h-100">
+                                        <div class="card-body">
+                                            <h6 class="text-danger fw-bold"><i class="fa-solid fa-flask"></i> Chemical Medicine</h6>
+                                            <p class="mb-0 fs-6">{{ result.chemical }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border-success shadow-sm h-100">
+                                        <div class="card-body">
+                                            <h6 class="text-success fw-bold"><i class="fa-solid fa-leaf"></i> Organic/Biological</h6>
+                                            <p class="mb-0 fs-6">{{ result.organic }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border-primary shadow-sm h-100">
+                                        <div class="card-body">
+                                            <h6 class="text-primary fw-bold"><i class="fa-solid fa-droplet"></i> Dosage (प्रमाण)</h6>
+                                            <p class="mb-0 fs-6">{{ result.dosage }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border-warning shadow-sm h-100">
+                                        <div class="card-body">
+                                            <h6 class="text-warning text-dark fw-bold"><i class="fa-solid fa-lightbulb"></i> Pro Advice</h6>
+                                            <p class="mb-0 fs-6">{{ result.advice }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="recommendation_text" style="display:none;">
+                                Disease detected is {{ result.disease }}. Chemical Medicine: {{ result.chemical }}. Organic Medicine: {{ result.organic }}. Dosage: {{ result.dosage }}. Pro Advice: {{ result.advice }}.
                             </div>
                             
-                            <div class="d-flex gap-3 no-print flex-wrap">
+                            <div class="d-flex gap-3 no-print flex-wrap mt-2">
                                 <button onclick="speakRecommendation()" class="btn btn-warning fw-bold text-dark shadow-sm btn-custom flex-grow-1">
                                     <i class="fa-solid fa-volume-high me-1"></i> Listen
                                 </button>
@@ -292,21 +287,6 @@
         </div>
         {% endif %}
 
-    </div>
-
-    <div class="chat-btn no-print animate__animated animate__bounceInRight" onclick="toggleChat()"><i class="fa-solid fa-robot"></i></div>
-    <div class="chat-popup no-print animate__animated animate__fadeInUp" id="chatPopup">
-        <div class="chat-header">
-            👨‍🌾 शेतकरी मित्र (AI)
-            <span style="float:right; cursor:pointer;" onclick="toggleChat()"><i class="fa-solid fa-xmark"></i></span>
-        </div>
-        <div class="chat-body" id="chatBody">
-            <div class="msg bot shadow-sm">Hello! Welcome to Smart Crop Advisory. How can I help you today?</div>
-        </div>
-        <div class="chat-input-area">
-            <input type="text" id="chatInput" placeholder="Type your question..." onkeypress="handleKeyPress(event)">
-            <button onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -356,7 +336,6 @@
             }, "image/jpeg");
         }
 
-        // --- Location & Voice ---
         window.onload = function() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
@@ -373,39 +352,11 @@
                 speech.text = text; speech.lang = 'hi-IN'; speech.rate = 0.9; window.speechSynthesis.speak(speech);
             } else { alert("Voice feature not supported."); }
         }
-
-        // --- 🤖 Chatbot Logic ---
-        function toggleChat() {
-            var chat = document.getElementById("chatPopup");
-            chat.style.display = (chat.style.display === "flex") ? "none" : "flex";
-        }
-        function handleKeyPress(e) { if (e.key === 'Enter') { sendMessage(); } }
-        function sendMessage() {
-            var inputField = document.getElementById("chatInput");
-            var message = inputField.value.trim();
-            if (message === "") return;
-            addMessage(message, "user");
-            inputField.value = "";
-            setTimeout(function() {
-                var response = getBotResponse(message.toLowerCase());
-                addMessage(response, "bot");
-            }, 600); 
-        }
-        function addMessage(text, sender) {
-            var chatBody = document.getElementById("chatBody");
-            var msgDiv = document.createElement("div");
-            msgDiv.className = "msg " + sender + " shadow-sm animate__animated animate__fadeInUp"; 
-            msgDiv.innerText = text;
-            chatBody.appendChild(msgDiv); 
-            chatBody.scrollTop = chatBody.scrollHeight; 
-        }
-        function getBotResponse(input) {
-            if (input.includes("hello") || input.includes("hi") || input.includes("namaskar")) return "Namaskar! I am your AI Farmer Friend. Ask me about Tomato or Potato diseases!";
-            else if (input.includes("early blight")) return "Early Blight causes brown spots. Solution: Use Chlorothalonil or Copper-based fungicides.";
-            else if (input.includes("late blight")) return "Late Blight spreads fast. Solution: Apply Mancozeb immediately and avoid overwatering.";
-            else if (input.includes("thank")) return "You're welcome! Happy Farming! 🌿";
-            else return "Sorry, I am still learning. Try asking about 'Early blight' or 'Late blight'.";
-        }
     </script>
+    
+    <script>
+      (function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="4eoyNvfDdI2tvBbnLbSVA";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
+    </script>
+    
 </body>
 </html>

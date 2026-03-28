@@ -1,0 +1,236 @@
+{
+    "Apple___Apple_scab": {
+        "chemical": "Mancozeb 75% WP किंवा Captan 50% WP",
+        "organic": "Neem Oil (10000 ppm) फवारणी",
+        "dosage": "२ ते २.५ ग्रॅम प्रति लिटर पाणी",
+        "advice": "पावसाळ्यापूर्वी आणि नंतर प्रतिबंधात्मक फवारणी करा. खराब पाने बागेबाहेर फेका."
+    },
+    "Apple___Black_rot": {
+        "chemical": "Carbendazim 50% WP किंवा Copper Oxychloride",
+        "organic": "Trichoderma Viride",
+        "dosage": "२ ग्रॅम प्रति लिटर पाणी",
+        "advice": "झाडाच्या बुंध्यावरील मृत साल काढा आणि तिथे बोर्डो पेस्ट लावा."
+    },
+    "Apple___Cedar_apple_rust": {
+        "chemical": "Myclobutanil 10% WP किंवा Propiconazole 25% EC",
+        "organic": "सल्फर पावडरची धुरळणी",
+        "dosage": "१ मिली प्रति लिटर पाणी",
+        "advice": "बागेच्या आसपास असलेली सिडर (Cedar) जातीची झाडे नष्ट करा, कारण हा रोग तिथून पसरतो."
+    },
+    "Apple___healthy": {
+        "chemical": "कोणत्याही रसायनाची गरज नाही.",
+        "organic": "प्रतिबंधात्मक उपाय म्हणून 15 दिवसांतून एकदा निमार्क फवारा.",
+        "dosage": "फक्त नियमित पाणी आणि खत द्या.",
+        "advice": "तुमचे सफरचंदाचे झाड पूर्णपणे निरोगी आहे! उत्तम काळजी घेत आहात."
+    },
+    "Blueberry___healthy": {
+        "chemical": "आवश्यकता नाही",
+        "organic": "आवश्यकता नाही",
+        "dosage": "वेळेवर पाणी द्या",
+        "advice": "ब्लूबेरीचे पीक निरोगी आहे."
+    },
+    "Cherry_(including_sour)___Powdery_mildew": {
+        "chemical": "Hexaconazole 5% SC किंवा Wettable Sulphur 80% WP",
+        "organic": "बेकिंग सोडा (Baking Soda) आणि लिक्विड सोपचे मिश्रण",
+        "dosage": "१ ते २ ग्रॅम/मिली प्रति लिटर पाणी",
+        "advice": "पाने पांढरी पडल्यास लगेच फवारणी करा. हवा खेळती राहू द्या."
+    },
+    "Cherry_(including_sour)___healthy": {
+        "chemical": "आवश्यकता नाही",
+        "organic": "आवश्यकता नाही",
+        "dosage": "नियमित पाणी",
+        "advice": "चेरीचे झाड निरोगी आहे."
+    },
+    "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot": {
+        "chemical": "Azoxystrobin + Difenoconazole किंवा Pyraclostrobin",
+        "organic": "Pseudomonas fluorescens",
+        "dosage": "१.५ ते २ मिली प्रति लिटर पाणी",
+        "advice": "पिकांची फेरपालट करा. रोगाची लक्षणे दिसताच फवारणी करा."
+    },
+    "Corn_(maize)___Common_rust_": {
+        "chemical": "Mancozeb 75% WP किंवा Propiconazole 25% EC",
+        "organic": "Neem Oil 5%",
+        "dosage": "२ ते २.५ ग्रॅम/मिली प्रति लिटर पाणी",
+        "advice": "पानांवर लाल-तपकिरी ठिपके दिसल्यास फवारणी करा. रोग प्रतिकारक वाण वापरा."
+    },
+    "Corn_(maize)___Northern_Leaf_Blight": {
+        "chemical": "Chlorothalonil किंवा Mancozeb",
+        "organic": "Trichoderma आधारित बुरशीनाशक",
+        "dosage": "२ ग्रॅम प्रति लिटर पाणी",
+        "advice": "पानांवर लांबट करडे ठिपके दिसल्यास काळजी घ्या."
+    },
+    "Corn_(maize)___healthy": {
+        "chemical": "आवश्यकता नाही",
+        "organic": "आवश्यकता नाही",
+        "dosage": "खताचे योग्य नियोजन करा",
+        "advice": "मक्याचे पीक निरोगी आहे."
+    },
+    "Grape___Black_rot": {
+        "chemical": "Myclobutanil 10% WP किंवा Mancozeb",
+        "organic": "Copper Hydroxide 77% WP",
+        "dosage": "१.५ ते २ ग्रॅम प्रति लिटर पाणी",
+        "advice": "द्राक्षांचे घड लागण्यापूर्वी प्रतिबंधात्मक फवारणी करा."
+    },
+    "Grape___Esca_(Black_Measles)": {
+        "chemical": "Fosetyl-AL 80% WP किंवा Copper आधारित औषधे",
+        "organic": "Trichoderma जातीची बुरशी जमिनीत सोडा",
+        "dosage": "२ ते ३ ग्रॅम प्रति लिटर पाणी",
+        "advice": "छाटणी करताना अवजारे निर्जंतुक करून घ्या. मोठ्या फांद्यांवर बोर्डो पेस्ट लावा."
+    },
+    "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)": {
+        "chemical": "Thiophanate Methyl 70% WP किंवा Carbendazim",
+        "organic": "Neem Oil आणि गोमूत्र अर्क",
+        "dosage": "१.५ ग्रॅम प्रति लिटर पाणी",
+        "advice": "बागेत हवा आणि सूर्यप्रकाश व्यवस्थित पोहोचू द्या."
+    },
+    "Grape___healthy": {
+        "chemical": "आवश्यकता नाही",
+        "organic": "आवश्यकता नाही",
+        "dosage": "वेळेवर छाटणी आणि खते द्या",
+        "advice": "द्राक्षाची बाग निरोगी आहे."
+    },
+    "Orange___Haunglongbing_(Citrus_greening)": {
+        "chemical": "Imidacloprid 17.8% SL (रोग पसरवणाऱ्या कीटकासाठी)",
+        "organic": "Neem Oil आणि चिकट सापळे (Yellow Sticky Traps)",
+        "dosage": "०.५ मिली प्रति लिटर पाणी",
+        "advice": "हा आजार बरा होत नाही. रोगट झाडे मुळासकट उपटून नष्ट करा आणि कीटक नियंत्रण करा."
+    },
+    "Peach___Bacterial_spot": {
+        "chemical": "Copper Oxychloride 50% WP + Streptomycin",
+        "organic": "बॅसिलस सबटिलिस (Bacillus subtilis)",
+        "dosage": "२.५ ग्रॅम कॉपर + ०.१ ग्रॅम स्ट्रेप्टोमायसीन",
+        "advice": "पावसाळ्यापूर्वी फवारणी करा. जास्त नायट्रोजनयुक्त खते टाळा."
+    },
+    "Peach___healthy": {
+        "chemical": "आवश्यकता नाही",
+        "organic": "आवश्यकता नाही",
+        "dosage": "योग्य प्रमाणात पाणी द्या",
+        "advice": "पीच चे झाड निरोगी आहे."
+    },
+    "Pepper,_bell___Bacterial_spot": {
+        "chemical": "Copper Oxychloride + Streptomycin",
+        "organic": "ताक आणि गोमूत्र फवारणी (पारंपारिक)",
+        "dosage": "३ ग्रॅम कॉपर + ०.१ ग्रॅम स्ट्रेप्टोमायसीन प्रति लिटर",
+        "advice": "झाडांमध्ये हवा खेळती राहू द्या. पानांवर पाणी साचू देऊ नका."
+    },
+    "Pepper,_bell___healthy": {
+        "chemical": "आवश्यकता नाही",
+        "organic": "आवश्यकता नाही",
+        "dosage": "नियमित पाणी",
+        "advice": "ढोबळी मिरचीचे पीक निरोगी आहे."
+    },
+    "Potato___Early_blight": {
+        "chemical": "Mancozeb 75% WP किंवा Chlorothalonil",
+        "organic": "Neem Oil (10000 ppm)",
+        "dosage": "२ ग्रॅम प्रति लिटर पाणी",
+        "advice": "खालची खराब झालेली पाने त्वरित तोडून नष्ट करा."
+    },
+    "Potato___Late_blight": {
+        "chemical": "Cymoxanil 8% + Mancozeb 64% WP",
+        "organic": "Copper Hydroxide 77% WP (सेंद्रिय शेतीत चालते)",
+        "dosage": "३ ग्रॅम प्रति लिटर पाणी",
+        "advice": "ढगाळ व पावसाळी वातावरणात फवारणी करू नका, बुरशी वेगाने पसरते."
+    },
+    "Potato___healthy": {
+        "chemical": "आवश्यकता नाही",
+        "organic": "आवश्यकता नाही",
+        "dosage": "पाण्याचा निचरा व्यवस्थित होऊ द्या",
+        "advice": "बटाट्याचे पीक निरोगी आहे."
+    },
+    "Raspberry___healthy": {
+        "chemical": "आवश्यकता नाही",
+        "organic": "आवश्यकता नाही",
+        "dosage": "नियमित काळजी",
+        "advice": "रास्पबेरी निरोगी आहे."
+    },
+    "Soybean___healthy": {
+        "chemical": "आवश्यकता नाही",
+        "organic": "आवश्यकता नाही",
+        "dosage": "नियमित खत-पाणी",
+        "advice": "सोयाबीनचे पीक निरोगी आहे."
+    },
+    "Squash___Powdery_mildew": {
+        "chemical": "Hexaconazole 5% SC किंवा Azoxystrobin",
+        "organic": "ताक (Sour Buttermilk) फवारणी किंवा बेकिंग सोडा",
+        "dosage": "१ मिली प्रति लिटर पाणी",
+        "advice": "पानांवर पांढरी पावडर दिसताच फवारणी सुरू करा."
+    },
+    "Strawberry___Leaf_scorch": {
+        "chemical": "Myclobutanil किंवा Copper आधारित बुरशीनाशक",
+        "organic": "Trichoderma",
+        "dosage": "१.५ ते २ ग्रॅम प्रति लिटर पाणी",
+        "advice": "रोप लावताना दोन रोपांत योग्य अंतर ठेवा."
+    },
+    "Strawberry___healthy": {
+        "chemical": "आवश्यकता नाही",
+        "organic": "आवश्यकता नाही",
+        "dosage": "ठिबक सिंचन वापरा",
+        "advice": "स्ट्रॉबेरी निरोगी आहे."
+    },
+    "Tomato___Bacterial_spot": {
+        "chemical": "Copper Hydroxide किंवा Copper Oxychloride + Streptomycin",
+        "organic": "लसूण आणि मिरचीचा अर्क",
+        "dosage": "२.५ ग्रॅम कॉपर + ०.१ ग्रॅम स्ट्रेप्टोमायसीन प्रति लिटर",
+        "advice": "पावसाळ्यात टोमॅटोच्या बागेत जास्त पाणी साचू देऊ नका."
+    },
+    "Tomato___Early_blight": {
+        "chemical": "Chlorothalonil 75% WP किंवा Mancozeb 75% WP",
+        "organic": "Neem Oil (10000 ppm) किंवा Trichoderma viride",
+        "dosage": "२ ते २.५ ग्रॅम प्रति लिटर पाणी",
+        "advice": "खालची खराब पाने तोडून बांधाबाहेर जाळून टाका."
+    },
+    "Tomato___Late_blight": {
+        "chemical": "Metalaxyl 8% + Mancozeb 64% WP",
+        "organic": "Copper आधारित सेंद्रिय बुरशीनाशके",
+        "dosage": "२.५ ग्रॅम प्रति लिटर पाणी",
+        "advice": "ही बुरशी काही दिवसांतच पीक नष्ट करू शकते, त्यामुळे लक्षणे दिसताच ताबडतोब फवारणी करा."
+    },
+    "Tomato___Leaf_Mold": {
+        "chemical": "Carbendazim 50% WP किंवा Difenoconazole",
+        "organic": "लॅक्टिक ॲसिड बॅक्टेरिया (LAB)",
+        "dosage": "१ ते १.५ ग्रॅम/मिली प्रति लिटर पाणी",
+        "advice": "ग्रीनहाऊस/पॉलीहाऊस मध्ये असल्यास हवा खेळती राहू द्या."
+    },
+    "Tomato___Septoria_leaf_spot": {
+        "chemical": "Chlorothalonil किंवा Mancozeb",
+        "organic": "Neem Oil आणि गोमूत्र",
+        "dosage": "२ ग्रॅम प्रति लिटर पाणी",
+        "advice": "पाण्यावाटे बुरशी पसरते, त्यामुळे जमिनीवरून पाणी पानांवर उडणार नाही याची काळजी घ्या."
+    },
+    "Tomato___Spider_mites Two-spotted_spider_mite": {
+        "chemical": "Abamectin 1.9% EC किंवा Spiromesifen 22.9% SC",
+        "organic": "दशपर्णी अर्क किंवा निमार्क",
+        "dosage": "०.५ ते १ मिली प्रति लिटर पाणी",
+        "advice": "पानाच्या खालच्या बाजूला फवारणी करा, कारण कोळी कीड तिथेच लपलेली असते."
+    },
+    "Tomato___Target_Spot": {
+        "chemical": "Azoxystrobin + Difenoconazole",
+        "organic": "Trichoderma Viride",
+        "dosage": "१ मिली प्रति लिटर पाणी",
+        "advice": "नायट्रोजन खतांचा अतिवापर टाळा."
+    },
+    "Tomato___Tomato_Yellow_Leaf_Curl_Virus": {
+        "chemical": "Imidacloprid 17.8% SL किंवा Thiamethoxam (पांढऱ्या माशीसाठी)",
+        "organic": "पिवळे चिकट सापळे (Yellow Sticky Traps) लावा",
+        "dosage": "०.५ मिली प्रति लिटर पाणी",
+        "advice": "हा एक व्हायरस आहे जो पांढऱ्या माशीमुळे पसरतो. त्यामुळे माशीचे नियंत्रण करणे सर्वात महत्त्वाचे आहे."
+    },
+    "Tomato___Tomato_mosaic_virus": {
+        "chemical": "यावर कोणतेही रासायनिक औषध नाही.",
+        "organic": "दूध आणि पाण्याचे मिश्रण फवारल्याने व्हायरसचा प्रसार कमी होतो.",
+        "dosage": "१ लिटर दूध + ९ लिटर पाणी",
+        "advice": "संक्रमित झाडे ताबडतोब मुळासकट उपटून जाळून टाका. शेतात काम करताना हात स्वच्छ धुवा."
+    },
+    "Tomato___healthy": {
+        "chemical": "कोणत्याही रसायनाची गरज नाही.",
+        "organic": "प्रतिबंधात्मक उपाय म्हणून 15 दिवसांतून एकदा निमार्क फवारा.",
+        "dosage": "फक्त नियमित पाणी आणि खत द्या.",
+        "advice": "तुमचे टोमॅटोचे पीक पूर्णपणे निरोगी आहे! उत्तम काळजी घेत आहात."
+    },
+    "Healthy": {
+        "chemical": "कोणत्याही रसायनाची गरज नाही.",
+        "organic": "प्रतिबंधात्मक उपाय म्हणून 15 दिवसांतून एकदा निमार्क फवारा.",
+        "dosage": "फक्त नियमित पाणी आणि खत द्या.",
+        "advice": "तुमचे पीक पूर्णपणे निरोगी आहे! उत्तम काळजी घेत आहात."
+    }
+}

@@ -22,9 +22,13 @@ MODEL_PATH = 'crop_model.h5'
 LABELS_PATH = 'class_indices.json'
 HISTORY_FILE = 'history.json'
 USERS_FILE = 'users.json'  
+MEDICINE_FILE = 'medicines.json' # 🚀 NEW: Medicine Database
 
 print("Loading Model... Please wait.")
-model = tf.keras.models.load_model(MODEL_PATH)
+try:
+    model = tf.keras.models.load_model(MODEL_PATH)
+except Exception as e:
+    print(f"Error loading model: {e}")
 
 # SMART LABEL LOADER
 with open(LABELS_PATH, 'r') as f:
@@ -35,14 +39,6 @@ with open(LABELS_PATH, 'r') as f:
         class_names = {v: k for k, v in raw_labels.items()}
 
 print("Model and Labels Loaded Successfully!")
-
-solutions = {
-    "Pepper,_bell___Bacterial_spot": "Use Copper-based fungicides. Ensure proper spacing between plants.",
-    "Tomato___Early_blight": "Apply Chlorothalonil or Copper fungicide. Remove infected leaves.",
-    "Potato___Late_blight": "Apply Mancozeb fungicide. Do not overwater the crops.",
-    "Tomato___Tomato_mosaic_virus": "Remove and destroy infected plants. Wash hands and tools.",
-    "Healthy": "Crop is healthy! Continue regular watering and proper fertilization."
-}
 
 # 🚀 USER MANAGEMENT LOGIC
 def get_users():
@@ -67,7 +63,6 @@ async def login(request: Request, username: str = Form(...), password: str = For
     user_data = users.get(username)
     
     is_valid = False
-    # Handle new dict format or legacy string format
     if isinstance(user_data, dict) and user_data.get("password") == password:
         is_valid = True
     elif isinstance(user_data, str) and user_data == password:
@@ -86,7 +81,6 @@ async def register_page(request: Request):
         return RedirectResponse(url="/home", status_code=303)
     return templates.TemplateResponse("register.html", {"request": request, "error": None})
 
-# 🚀 UPDATED: Register route with new Agri-specific fields
 @app.post("/register")
 async def register(
     request: Request, 
@@ -106,7 +100,6 @@ async def register(
     if password != confirm_password:
         return templates.TemplateResponse("register.html", {"request": request, "error": "Passwords do not match!"})
     
-    # Save user with complete profile data
     users[username] = {
         "password": password,
         "fullname": fullname,
@@ -127,7 +120,6 @@ async def logout():
     response.delete_cookie("auth_session")
     return response
 
-# --- YOUR EXISTING APP ROUTES ---
 @app.get("/home")
 async def home(request: Request):
     if not is_logged_in(request): return RedirectResponse(url="/", status_code=303)
@@ -213,9 +205,25 @@ async def predict_disease(
     raw_disease_name = class_names.get(predicted_index, "Unknown_Disease")
     clean_disease_name = raw_disease_name.replace("___", " - ").replace("_", " ")
 
-    reco = solutions.get(raw_disease_name, "Consult a local agricultural expert for exact pesticide measurements.")
-    if "healthy" in raw_disease_name.lower():
-        reco = solutions.get("Healthy", "Crop is healthy! Continue regular watering.")
+    # 🚀 NEW: Load Medicine DB
+    default_med = {
+        "chemical": "Consult local agri expert for specific chemicals.",
+        "organic": "Use Neem Oil for general protection.",
+        "dosage": "As per expert advice.",
+        "advice": "Maintain field hygiene and proper watering."
+    }
+    
+    med_info = default_med
+    if os.path.exists(MEDICINE_FILE):
+        with open(MEDICINE_FILE, 'r', encoding='utf-8') as f:
+            try:
+                medicine_db = json.load(f)
+                if "healthy" in raw_disease_name.lower():
+                    med_info = medicine_db.get("Healthy", default_med)
+                else:
+                    med_info = medicine_db.get(raw_disease_name, default_med)
+            except:
+                pass
 
     temp, humidity = "N/A", "N/A"
     if latitude and longitude:
@@ -237,16 +245,15 @@ async def predict_disease(
     result_data = {
         "disease": clean_disease_name, 
         "confidence": round(confidence, 2),
-        "recommendation": reco,
         "temperature": temp,      
         "humidity": humidity,     
         "image_url": f"/{file_path}",
-        "wiki_url": wiki_url
+        "wiki_url": wiki_url,
+        "chemical": med_info["chemical"],
+        "organic": med_info["organic"],
+        "dosage": med_info["dosage"],
+        "advice": med_info["advice"]
     }
 
     save_to_history(result_data)
-<<<<<<< HEAD
-    return templates.TemplateResponse("predict.html", {"request": request, "result": result_data})
-=======
     return templates.TemplateResponse(request=request, name="predict.html", context={"request": request, "result": result_data, "error": None})
->>>>>>> b70cfa073 (updated code)
